@@ -1,4 +1,26 @@
 {
     "version": "2.0.0",
-    "tasks": []
+    "tasks": [
+        {
+            "label": "Run Node.js App",
+            "type": "shell",
+            "command": "node",
+            "args": ["--watch", "--inspect-brk", "${file}"],
+            "isBackground": true,
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "."
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^Starting",
+                    "endsPattern": "Debugger listening"
+                }
+            }
+        }
+    ]
 }
