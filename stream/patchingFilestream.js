@@ -76,6 +76,7 @@ const path = require("path");
       origRead.call(self, size);
       if (origFsRead) fs.read = origFsRead;
       if (origFsReadv) fs.readv = origFsReadv;
+      sx;
     } else {
       origRead.call(self, size);
     }
