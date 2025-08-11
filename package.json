@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Jan-Michael-Leufke/Node_Scripts/issues"
   },
-  "homepage": "https://github.com/Jan-Michael-Leufke/Node_Scripts#readme"
+  "homepage": "https://github.com/Jan-Michael-Leufke/Node_Scripts#readme",
+  "dependencies": {
+    "@types/node": "^24.2.0"
+  }
 }
