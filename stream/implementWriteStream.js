@@ -33,7 +33,7 @@ class MyWritableStream extends stream.Writable {
   _write(chunk, encoding, callback) {
     this.batch.push({ chunk, encoding });
     this.batchSize += Buffer.byteLength(chunk, encoding);
-    console.log("current batch size:", this.batchSize);
+    console.log("_write invokation : current batch size:", this.batchSize);
 
     if (this.batchSize < this.batchSizeLimit) {
       setTimeout(() => {
@@ -54,6 +54,22 @@ class MyWritableStream extends stream.Writable {
     }
 
     this.#handleFlush(callback);
+  }
+
+  _destroy(error, callback) {
+    if (this.fileHandle) {
+      this.fileHandle
+        .close()
+        .then(() => {
+          callback(error);
+        })
+        .catch((err) => {
+          console.error("Error closing file:", err);
+          callback(err || error);
+        });
+    } else {
+      callback(error);
+    }
   }
 
   #handleFlush(callback) {
@@ -77,44 +93,48 @@ class MyWritableStream extends stream.Writable {
   }
 }
 
-const myWriteStream = new MyWritableStream({ decodeStrings: false });
+// run();
 
-fsPromises
-  .readFile(path.join(__dirname, "files", "lorem_4kb.txt"), "utf8")
-  .then((data) => {
-    function* makeIterable(str, size = 64) {
-      let offset = 0;
-      while (offset < str.length) {
-        yield str.slice(offset, offset + size);
-        offset += size;
-      }
-    }
+module.exports = MyWritableStream;
 
-    const stringChunks = [...makeIterable(data)];
+function run() {
+  const myWriteStream = new MyWritableStream({ decodeStrings: false });
 
-    let ended = false;
-
-    const processWrite = () => {
-      while (stringChunks.length > 0) {
-        console.log("write invoked");
-
-        if (!myWriteStream.write(stringChunks.shift(), "utf8")) {
-          console.error("Backpressure!");
-          myWriteStream.once("drain", processWrite);
-          return;
+  fsPromises
+    .readFile(path.join(__dirname, "files", "lorem_4kb.txt"), "utf8")
+    .then((data) => {
+      function* makeIterable(str, size = 64) {
+        let offset = 0;
+        while (offset < str.length) {
+          yield str.slice(offset, offset + size);
+          offset += size;
         }
       }
 
-      if (stringChunks.length === 0 && !ended) {
-        ended = true;
-        myWriteStream.end();
-      }
-    };
+      const stringChunks = [...makeIterable(data)];
 
-    processWrite();
-  })
-  .catch((err) => {
-    console.error("Error reading file:", err);
-  });
+      let ended = false;
 
-console.log("end of user code");
+      const processWrite = () => {
+        while (stringChunks.length > 0) {
+          console.log("write invoked");
+
+          if (!myWriteStream.write(stringChunks.shift(), "utf8")) {
+            console.error("Backpressure!");
+            myWriteStream.once("drain", processWrite);
+            return;
+          }
+        }
+
+        if (stringChunks.length === 0 && !ended) {
+          ended = true;
+          myWriteStream.end();
+        }
+      };
+
+      processWrite();
+    })
+    .catch((err) => {
+      console.error("Error reading file:", err);
+    });
+}

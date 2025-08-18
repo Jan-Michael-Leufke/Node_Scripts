@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 
 #exclude huge files
 *.ignore
+
+
+#exclude powershell scripts
+*.ps1
