@@ -15,10 +15,3 @@ server1.listen(
     console.log(server1.address());
   }
 );
-
-// const server2 = net.createServer();
-
-// server2.listen({ port: 8124, host: "172.20.174.170", reusePort: true }, () => {
-//   console.log("server bound at : ");
-//   console.log(server2.address());
-// });
