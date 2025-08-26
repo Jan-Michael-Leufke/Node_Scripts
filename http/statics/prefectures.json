@@ -1,0 +1,39 @@
+{
+    "prefectures": [
+        {
+            "name_en": "Hokkaido",
+            "name_jp": "北海道",
+            "region": "Hokkaido",
+            "capital": "Sapporo",
+            "population_millions": 5.2
+        },
+        {
+            "name_en": "Aomori",
+            "name_jp": "青森県",
+            "region": "Tohoku",
+            "capital": "Aomori",
+            "population_millions": 1.2
+        },
+        {
+            "name_en": "Tokyo",
+            "name_jp": "東京都",
+            "region": "Kanto",
+            "capital": "Tokyo",
+            "population_millions": 14.0
+        },
+        {
+            "name_en": "Osaka",
+            "name_jp": "大阪府",
+            "region": "Kansai",
+            "capital": "Osaka",
+            "population_millions": 8.8
+        },
+        {
+            "name_en": "Okinawa",
+            "name_jp": "沖縄県",
+            "region": "Kyushu",
+            "capital": "Naha",
+            "population_millions": 1.5
+        }
+    ]
+}

@@ -14,18 +14,20 @@ const agent = new http.Agent({
   log("Socket is free", socket.Identifier);
 });
 
+patchAgentFuncsWithLogs(["keepSocketAlive", "reuseSocket"], agent);
+
 const requestOptions = {
   agent,
   hostname: "localhost",
   port: 8080,
   method: "POST",
-  path: "/",
+  path: "/test",
   headers: {
     "Content-Type": "text/plain",
   },
 };
 
-let socketIdentifier = 0;
+let socketCounterId = 0;
 
 function sendRequest(options, message) {
   let thisSocket = null;
@@ -45,12 +47,20 @@ function sendRequest(options, message) {
               thisSocket && thisSocket.Identifier
             }`
           );
+        })
+        .on("close", () => {
+          log(
+            `Response closed from socket ${thisSocket && thisSocket.Identifier}`
+          );
+          Object.entries(agent.freeSockets).forEach(([key, sockets]) => {
+            log(`Free sockets for ${key}: ${sockets.length}`);
+          });
         });
     })
     .once("socket", (socket) => {
       thisSocket = socket;
       if (!socket.Identifier) {
-        socket.Identifier = ++socketIdentifier;
+        socket.Identifier = ++socketCounterId;
       }
       log(`Socket connected: ${socket.Identifier}`);
     })
@@ -69,3 +79,26 @@ sendRequest(requestOptions, "Hello, server!");
 setTimeout(() => {
   sendRequest(requestOptions, "Hello again, server!");
 }, 1000);
+
+function patchAgentFuncsWithLogs(functionNames, agent) {
+  if (!agent || typeof agent !== "object" || !Array.isArray(functionNames)) {
+    throw new Error("Invalid arguments");
+  }
+
+  for (const funcName of functionNames) {
+    const func = agent[funcName];
+    if (!func) {
+      throw new Error(`Function ${funcName} not found on agent`);
+    }
+
+    agent[funcName] = (...args) => {
+      const [socket] = args;
+      log(
+        `${funcName} invoked, socket identifier: ${
+          socket ? socket.Identifier : "unknown"
+        }`
+      );
+      return func.call(agent, ...args);
+    };
+  }
+}

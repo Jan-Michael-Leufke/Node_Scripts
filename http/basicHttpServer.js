@@ -4,6 +4,8 @@ const { log, dir } = require("node:console");
 
 const httpserver = http
   .createServer((req, res) => {
+    const url = new URL(`http://${req.headers.host}${req.url}`);
+    log(url);
     log(`HTTP request received: ${req.method} ${req.url}`);
     log("request headers:", req.headers);
 
