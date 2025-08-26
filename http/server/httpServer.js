@@ -1,15 +1,36 @@
-const http = require("http");
 const { log } = require("console");
-const fs = require("fs");
-const stream = require("stream");
 const MiniExpress = require("./miniExpress.js");
+const fs = require("node:fs");
 
 const mini = new MiniExpress();
 
 mini
   .get("/", (req, res) => {
-    res.end("Hello from MiniExpress!");
+    res.sendFile("./http/statics/index.html");
   })
-  .listen(9001, "localhost", 511, () => {
-    console.log("Mini Express listening on http://localhost:9001");
-  });
+  .post("/upload", (req, res) => {
+    const { filename = "unknown.file", "content-type": contentType } =
+      req.headers;
+    log(filename, contentType);
+    const writeStream = fs.createWriteStream(
+      `http/statics/media/uploads/${filename}`
+    );
+
+    res.setHeader("Content-Type", "application/json");
+
+    req
+      .on("data", (chunk) => {
+        writeStream.write(chunk);
+      })
+      .on("end", () => {
+        log("Upload complete");
+        res.statusCode = 200;
+        res.json("File uploaded successfully!");
+      })
+      .on("error", (err) => {
+        log("Error occurred during file upload:", err);
+        res.statusCode = 500;
+        res.json("Internal Server Error");
+      });
+  })
+  .listen(9001);

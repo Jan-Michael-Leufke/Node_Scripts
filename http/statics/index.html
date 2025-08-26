@@ -11,5 +11,17 @@
 </head>
 <body>
     <h1>Hello there!</h1>
+
+    <div class="uploader-div">
+    <h2>Uploader</h2>
+        <form action="/upload" method="POST" id="upload-form" enctype="multipart/form-data">
+            <input type="file" name="file" id="file-input" />
+            <button type="submit">Upload</button>
+        </form>
+        <div id="upload-status">
+            <p id="status-message"></p>
+        </div>
+    </div>
+
 </body>
 </html>
