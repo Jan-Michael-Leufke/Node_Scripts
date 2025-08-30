@@ -39,6 +39,7 @@ mini
       const sessionId = createBase36Id();
 
       sessions[sessionId] = {
+        sessionId,
         userId: user.id,
         name: user.name,
         username: user.username,
@@ -69,7 +70,9 @@ mini
     });
   })
   .get("/logout", (req, res) => {
-    delete sessions[req.session.sessionId];
+    if (req.session && req.session.sessionId) {
+      delete sessions[req.session.sessionId];
+    }
     req.session = null;
 
     res.setHeader("Set-Cookie", [
@@ -106,12 +109,3 @@ mini
     res.status(201).json(newPost);
   })
   .listen(9001);
-
-function getSession(req) {
-  const cookie = req.headers.cookie || "";
-  const sessionId = cookie
-    .split("; ")
-    .find((c) => c.startsWith("sessionId="))
-    ?.split("=")[1];
-  return sessionId && sessions[sessionId];
-}

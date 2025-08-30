@@ -4,19 +4,19 @@ const fsPromises = require("node:fs/promises");
 const extToMime = require("./extToMime.js");
 const { createBase36Id } = require("./idCreator.js");
 const { log } = require("node:console");
-const { Readable } = require("node:stream");
-const { buffer } = require("node:stream/consumers");
 
-let serverOpts;
-let miniOpts;
+// let serverOpts;
+// let miniOpts;
 
 module.exports = class MiniExpress {
   #routes;
   #server;
   #middleware;
+  #serverOpts;
+  #miniOpts;
 
   constructor(serverOptions, miniOptions) {
-    serverOpts = serverOptions || {
+    this.#serverOpts = serverOptions || {
       keepAliveTimeout: 6000,
       connectionsCheckTimeout: 10000,
       highWaterMark: 64,
@@ -31,7 +31,7 @@ module.exports = class MiniExpress {
       rejectNonStandardBodyWrites: false,
     };
 
-    miniOpts = {
+    this.#miniOpts = {
       showRoutes: true,
       staticsDir: "./http/statics",
       mediaDir: "./http/statics/media",
@@ -49,9 +49,9 @@ module.exports = class MiniExpress {
       PATCH: {},
     };
 
-    this.ready = this.#registerStaticRoutes(miniOpts.showRoutes);
+    this.ready = this.#registerStaticRoutes(this.#miniOpts.showRoutes);
 
-    this.#server = http.createServer(serverOpts, (req, res) => {
+    this.#server = http.createServer(this.#serverOpts, (req, res) => {
       this.#patchServerResponse(res);
       this.#runMiddleware(req, res, this.#middleware, 0);
     });
@@ -114,6 +114,10 @@ module.exports = class MiniExpress {
     return this;
   }
 
+  routeExists(method, path) {
+    return !!this.#routes[method][path];
+  }
+
   #runMiddleware(req, res, middleware, index) {
     if (index === middleware.length) {
       this.#handleRequest(req, res);
@@ -122,10 +126,6 @@ module.exports = class MiniExpress {
         this.#runMiddleware(req, res, middleware, index + 1);
       });
     }
-  }
-
-  routeExists(method, path) {
-    return !!this.#routes[method][path];
   }
 
   #handleRequest(req, res) {
@@ -147,7 +147,7 @@ module.exports = class MiniExpress {
       .readdir("./http/statics")
       .then(async (files) => {
         for (const file of files) {
-          const filePath = `${miniOpts.staticsDir}/${file}`;
+          const filePath = `${this.#miniOpts.staticsDir}/${file}`;
 
           const fileStats = await fsPromises.stat(filePath);
           if (fileStats.isDirectory()) continue;
@@ -183,76 +183,101 @@ module.exports = class MiniExpress {
   }
 
   #patchServerResponse(res) {
-    Object.entries(serverResExtentions).forEach(([name, fn]) => {
-      res[name] = fn;
-    });
+    Object.entries(serverResponseExtentions(this.#miniOpts)).forEach(
+      ([name, fn]) => {
+        res[name] = fn;
+      }
+    );
   }
 };
 
-const serverResExtentions = {
-  json(data) {
-    this.setHeader("Content-Type", "application/json");
-    this.end(JSON.stringify(data));
-  },
+function serverResponseExtentions(miniOpts) {
+  return {
+    json(data) {
+      this.setHeader("Content-Type", "application/json");
+      this.end(JSON.stringify(data));
+    },
 
-  buffer(data, encoding = "utf-8") {
-    this.setHeader("content-type", "application/octet-stream");
-    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, encoding);
-    this.setHeader("content-length", buffer.length);
-    this.write(buffer);
-    this.end();
-  },
+    buffer(data, encoding = "utf-8") {
+      let buffer;
+      if (Buffer.isBuffer(data)) {
+        buffer = data;
+      } else if (typeof data === "string") {
+        buffer = Buffer.from(data, encoding);
+      } else if (ArrayBuffer.isView(data) || data instanceof ArrayBuffer) {
+        buffer = Buffer.from(data);
+      } else if (Array.isArray(data)) {
+        buffer = data.every((value) => typeof value === "number")
+          ? Buffer.from(data)
+          : Buffer.from(JSON.stringify(data));
+      } else if (typeof data === "object" && data !== null) {
+        buffer = Buffer.from(JSON.stringify(data), encoding);
+      } else {
+        throw new TypeError("Unsupported data type");
+      }
 
-  sendFile(filePath, contentType = "text/plain") {
-    const rs = fs.createReadStream(filePath).on("error", () => {
-      this.setHeader("Content-Type", "text/plain");
-      this.statusCode = 404;
-      this.end("File Not Found");
-    });
+      this.setHeader("content-type", "application/octet-stream");
+      this.setHeader("content-length", buffer.length);
+      this.write(buffer);
+      this.end();
+    },
 
-    const extention = filePath.split(".").pop();
-    const mimeType = extToMime["." + extention] || contentType;
+    sendFile(filePath, contentType = "application/octet-stream") {
+      const extention = filePath.split(".").pop();
+      const mimeType = extToMime["." + extention] || "application/octet-stream";
 
-    this.setHeader("Content-Type", mimeType);
-    this.statusCode = 200;
-    rs.pipe(this);
-  },
+      const rs = fs.createReadStream(filePath);
 
-  status(statusCode) {
-    this.statusCode = statusCode;
-    return this;
-  },
-
-  handleUpload(req, customFilename) {
-    const { ["x-filename"]: headerFilename, "content-type": contentType } =
-      req.headers;
-
-    const filename =
-      customFilename ||
-      headerFilename ||
-      `unknown_${createBase36Id()}_${Date.now().toLocaleString()}.file`;
-
-    log("uploading:", filename, contentType);
-
-    const writeStream = fs.createWriteStream(
-      `${miniOpts.uploadDir}/${filename}`
-    );
-
-    this.setHeader("Content-Type", "application/json");
-
-    req
-      .on("data", (chunk) => {
-        writeStream.write(chunk);
-      })
-      .on("end", () => {
-        log("Upload complete");
-        this.statusCode = 200;
-        this.json("File uploaded successfully!");
-      })
-      .on("error", (err) => {
-        log("Error occurred during file upload:", err);
-        this.statusCode = 500;
-        this.json("Internal Server Error");
+      rs.on("open", () => {
+        this.setHeader("Content-Type", mimeType);
+        this.status(200);
+        rs.pipe(this);
       });
-  },
-};
+
+      rs.on("error", () => {
+        this.setHeader("Content-Type", "text/plain");
+        this.status(404);
+        this.end("File Not Found");
+      });
+    },
+
+    status(statusCode) {
+      this.statusCode = statusCode;
+      return this;
+    },
+
+    handleUpload(req, customFilename) {
+      const { ["x-filename"]: headerFilename, "content-type": contentType } =
+        req.headers;
+
+      const filename =
+        customFilename ||
+        headerFilename ||
+        `unknown_${createBase36Id()}_${Date.now()}_${Date.now()}.file`;
+
+      log("uploading:", filename, contentType);
+
+      const writeStream = fs.createWriteStream(
+        `${miniOpts.uploadDir}/${filename}`
+      );
+
+      this.setHeader("Content-Type", "application/json");
+
+      req
+        .on("data", (chunk) => {
+          writeStream.write(chunk);
+        })
+        .on("end", () => {
+          log("Upload complete");
+          this.status(200);
+          writeStream.end();
+          this.json("File uploaded successfully!");
+        })
+        .on("error", (err) => {
+          log("Error occurred during file upload:", err);
+          this.status(500);
+          this.json("Internal Server Error");
+        });
+    },
+  };
+}
