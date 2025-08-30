@@ -1,3 +1,5 @@
+checkLoginStatus();
+
 fetch("/prefectures.json")
   .then((response) => response.json())
   .then((data) => {

@@ -2,15 +2,21 @@ const http = require("node:http");
 const fs = require("node:fs");
 const fsPromises = require("node:fs/promises");
 const extToMime = require("./extToMime.js");
+const { createBase36Id } = require("./idCreator.js");
+const { log } = require("node:console");
+const { Readable } = require("node:stream");
+const { buffer } = require("node:stream/consumers");
+
+let serverOpts;
+let miniOpts;
 
 module.exports = class MiniExpress {
   #routes;
   #server;
-  #serverOptions;
-  #miniOptions;
+  #middleware;
 
   constructor(serverOptions, miniOptions) {
-    this.#serverOptions = serverOptions || {
+    serverOpts = serverOptions || {
       keepAliveTimeout: 6000,
       connectionsCheckTimeout: 10000,
       highWaterMark: 64,
@@ -25,9 +31,15 @@ module.exports = class MiniExpress {
       rejectNonStandardBodyWrites: false,
     };
 
-    this.#miniOptions = miniOptions || {
+    miniOpts = {
       showRoutes: true,
+      staticsDir: "./http/statics",
+      mediaDir: "./http/statics/media",
+      uploadDir: "./http/statics/media/uploads",
+      ...miniOptions,
     };
+
+    this.#middleware = [];
 
     this.#routes = {
       GET: {},
@@ -37,19 +49,20 @@ module.exports = class MiniExpress {
       PATCH: {},
     };
 
-    this.ready = this.#registerStaticRoutes(this.#miniOptions.showRoutes);
+    this.ready = this.#registerStaticRoutes(miniOpts.showRoutes);
 
-    this.#server = http.createServer(this.#serverOptions, (req, res) => {
-      this.#handleRequest(req, res);
+    this.#server = http.createServer(serverOpts, (req, res) => {
+      this.#patchServerResponse(res);
+      this.#runMiddleware(req, res, this.#middleware, 0);
     });
 
     this.#server.on("connection", (socket) => {
       socket
         .on("timeout", () => {
-          console.log("Socket timed out");
+          // console.log("Socket timed out");
         })
         .on("close", (hadError) => {
-          console.log("Socket closed", hadError ? "with error" : "");
+          // console.log("Socket closed", hadError ? "with error" : "");
         });
     });
   }
@@ -96,6 +109,25 @@ module.exports = class MiniExpress {
       });
   }
 
+  use(handler) {
+    this.#middleware.push(handler);
+    return this;
+  }
+
+  #runMiddleware(req, res, middleware, index) {
+    if (index === middleware.length) {
+      this.#handleRequest(req, res);
+    } else {
+      middleware[index](req, res, () => {
+        this.#runMiddleware(req, res, middleware, index + 1);
+      });
+    }
+  }
+
+  routeExists(method, path) {
+    return !!this.#routes[method][path];
+  }
+
   #handleRequest(req, res) {
     const { method, url } = req;
     const handler = this.#routes[method][url];
@@ -103,10 +135,11 @@ module.exports = class MiniExpress {
     if (handler) {
       this.#patchServerResponse(res);
       handler(req, res);
-    } else {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not Found");
+      return;
     }
+
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end(`error: ${method} ${url} not found`);
   }
 
   #registerStaticRoutes(showRoutes = true) {
@@ -114,7 +147,7 @@ module.exports = class MiniExpress {
       .readdir("./http/statics")
       .then(async (files) => {
         for (const file of files) {
-          const filePath = `./http/statics/${file}`;
+          const filePath = `${miniOpts.staticsDir}/${file}`;
 
           const fileStats = await fsPromises.stat(filePath);
           if (fileStats.isDirectory()) continue;
@@ -158,19 +191,68 @@ module.exports = class MiniExpress {
 
 const serverResExtentions = {
   json(data) {
-    this.writeHead(200, { "Content-Type": "application/json" });
+    this.setHeader("Content-Type", "application/json");
     this.end(JSON.stringify(data));
   },
+
+  buffer(data, encoding = "utf-8") {
+    this.setHeader("content-type", "application/octet-stream");
+    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data, encoding);
+    this.setHeader("content-length", buffer.length);
+    this.write(buffer);
+    this.end();
+  },
+
   sendFile(filePath, contentType = "text/plain") {
     const rs = fs.createReadStream(filePath).on("error", () => {
-      this.writeHead(404, { "Content-Type": "text/plain" });
+      this.setHeader("Content-Type", "text/plain");
+      this.statusCode = 404;
       this.end("File Not Found");
     });
 
     const extention = filePath.split(".").pop();
     const mimeType = extToMime["." + extention] || contentType;
 
-    this.writeHead(200, { "Content-Type": mimeType });
+    this.setHeader("Content-Type", mimeType);
+    this.statusCode = 200;
     rs.pipe(this);
+  },
+
+  status(statusCode) {
+    this.statusCode = statusCode;
+    return this;
+  },
+
+  handleUpload(req, customFilename) {
+    const { ["x-filename"]: headerFilename, "content-type": contentType } =
+      req.headers;
+
+    const filename =
+      customFilename ||
+      headerFilename ||
+      `unknown_${createBase36Id()}_${Date.now().toLocaleString()}.file`;
+
+    log("uploading:", filename, contentType);
+
+    const writeStream = fs.createWriteStream(
+      `${miniOpts.uploadDir}/${filename}`
+    );
+
+    this.setHeader("Content-Type", "application/json");
+
+    req
+      .on("data", (chunk) => {
+        writeStream.write(chunk);
+      })
+      .on("end", () => {
+        log("Upload complete");
+        this.statusCode = 200;
+        this.json("File uploaded successfully!");
+      })
+      .on("error", (err) => {
+        log("Error occurred during file upload:", err);
+        this.statusCode = 500;
+        this.json("Internal Server Error");
+      });
   },
 };

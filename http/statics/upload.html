@@ -4,15 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prefectures Information</title>
+  <title>Uploader</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="nav.css">
-  <link rel="stylesheet" href="prefsinfo.css">
-  <!-- <link rel="icon" type="image/png" sizes="16x16" href="/media/images/icons8-star-filled-16.png"> -->
+  <link rel="stylesheet" href="upload.css">
   <script src="main.js" defer></script>
-  <script src="prefsinfo.js" defer></script>
-
-
+  <script src="upload.js" defer></script>
 </head>
 
 <body>
@@ -29,9 +26,16 @@
     </ul>
   </nav>
 
-  <h2>Prefectures Information</h2>
-  <div id="prefectures-list"></div>
-
+  <div class="uploader-div">
+    <h2>Uploader</h2>
+    <form action="/upload" method="POST" id="upload-form" enctype="multipart/form-data">
+      <input type="file" name="file" id="file-input" />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="upload-status">
+      <p id="status-message"></p>
+    </div>
+  </div>
 </body>
 
 </html>

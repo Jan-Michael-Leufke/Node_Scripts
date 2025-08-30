@@ -5,8 +5,8 @@ http
   .request(
     {
       hostname: "localhost",
-      port: 3000,
-      method: "GET",
+      port: 9001,
+      method: "get",
       path: "/",
     },
     (res) => {

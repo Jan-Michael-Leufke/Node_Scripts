@@ -1,12 +1,3 @@
-body {
-  background: #222;
-  font-family: "Segoe UI", Arial, sans-serif;
-  color: oldlace;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
-
 h1 {
   text-align: center;
   margin-top: 2.5rem;
@@ -27,60 +18,9 @@ p {
   max-width: 700px;
   margin: 1.5rem auto;
   padding: 1rem 1.5rem;
-  background: #222;
+  background: #181b20;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(44, 62, 80, 0.07);
   font-size: 1.1rem;
   line-height: 1.7;
-}
-
-.uploader-div {
-  text-align: center;
-  margin: 0;
-}
-
-.uploader-div button {
-  background: oldlace;
-  color: #222;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease;
-}
-
-.uploader-div button:hover {
-  background: #91dfdb;
-}
-
-.uploader-div input {
-  display: block;
-  margin: 1rem auto;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-#upload-status {
-  display: block;
-  height: 1.5rem;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-#status-message {
-  display: block;
-  height: 1.5rem;
-  margin: 0 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.visible {
-  visibility: visible;
 }

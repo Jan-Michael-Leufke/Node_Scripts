@@ -1,68 +1,63 @@
-body {
-  background: #333;
-  font-family: "Segoe UI", Arial, sans-serif;
-  color: oldlace;
-  margin: 0;
-  padding: 0;
-}
-
 h2 {
   text-align: center;
   margin-top: 2rem;
-  color: oldlace;
+  color: #91dfdb;
   letter-spacing: 1px;
 }
 
 #prefectures-list {
-  max-width: 800px;
-  margin: 2rem auto;
+  max-width: 900px;
+  margin: 2.5rem auto;
   padding: 1.5rem;
-  background: #333;
+  background: #23272e;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.5rem;
 }
 
 .prefecture-card {
-  background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  background: #181b20;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
   padding: 1.2rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid #444a57;
 }
 
 .prefecture-card:hover {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 6px 20px rgba(44, 62, 80, 0.13);
+  box-shadow: 0 6px 20px rgba(44, 62, 80, 0.18);
+  border-color: #91dfdb;
 }
 
 .prefecture-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #34495e;
+  color: #b8e0e6;
   margin-bottom: 0.3rem;
 }
 
 .prefecture-region {
-  font-size: 0.95rem;
-  color: #2980b9;
+  font-size: 0.98rem;
+  color: #91dfdb;
   margin-bottom: 0.5rem;
 }
 
 .prefecture-capital {
-  font-size: 0.95rem;
+  font-size: 0.97rem;
   color: #16a085;
   margin-bottom: 0.5rem;
 }
 
 .prefecture-population {
-  font-size: 0.92rem;
-  color: #7f8c8d;
+  font-size: 0.95rem;
+  color: #e0e0e0;
   margin-top: auto;
   font-style: italic;
+  opacity: 0.85;
 }

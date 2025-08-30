@@ -1,0 +1,156 @@
+.posts-main {
+  max-width: 800px;
+  margin: 2.5rem auto;
+  padding: 1.5rem;
+  background: #23272e;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
+}
+
+.posts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.posts-header h2 {
+  color: #91dfdb;
+  margin: 0;
+}
+
+.create-post-btn {
+  background: #91dfdb;
+  color: #222;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.create-post-btn:hover {
+  background: #2c3e50;
+  color: #fff;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.post-card {
+  background: #181b20;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+  padding: 1.2rem 1rem;
+  position: relative;
+}
+
+.post-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #b8e0e6;
+  margin-bottom: 0.5rem;
+}
+
+.post-card-content {
+  color: oldlace;
+  font-size: 1.05rem;
+  margin-bottom: 0.7rem;
+}
+
+.post-card-actions {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.post-card-actions button {
+  background: #91dfdb;
+  color: #222;
+  border: none;
+  padding: 0.3rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.97rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.post-card-actions button:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.post-form-section {
+  margin-top: 2.5rem;
+  background: #181b20;
+  border-radius: 8px;
+  padding: 1.5rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+}
+
+#post-form label {
+  color: #b8e0e6;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+#post-form input[type="text"],
+#post-form textarea {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #444a57;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: #23272e;
+  color: oldlace;
+  transition: border 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+#post-form input[type="text"]:focus,
+#post-form textarea:focus {
+  border-color: #91dfdb;
+  background: #181b20;
+  outline: none;
+}
+
+.post-form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+#save-post-btn {
+  background: #91dfdb;
+  color: #222;
+}
+
+#save-post-btn:hover {
+  background: #2c3e50;
+  color: #fff;
+}
+
+#cancel-post-btn {
+  background: #e74c3c;
+  color: #fff;
+}
+
+#cancel-post-btn:hover {
+  background: #b71c1c;
+}
+
+.post-card-author {
+  color: #91dfdb;
+  font-size: 0.98rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+  text-align: right;
+  letter-spacing: 0.02em;
+}

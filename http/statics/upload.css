@@ -1,0 +1,50 @@
+.uploader-div {
+  text-align: center;
+  margin: 0;
+}
+
+.uploader-div button {
+  background: oldlace;
+  color: #222;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.uploader-div button:hover {
+  background: #91dfdb;
+}
+
+.uploader-div input {
+  display: block;
+  margin: 1rem auto;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+#upload-status {
+  display: block;
+  height: 1.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+#status-message {
+  display: block;
+  height: 1.5rem;
+  margin: 0 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.visible {
+  visibility: visible;
+}
